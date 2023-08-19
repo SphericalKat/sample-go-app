@@ -1,0 +1,16 @@
+openapi: "3.0.3"
+info:
+  description: "sample"
+  version: "1.0.0"
+  title: "sample"
+servers:
+  - url: "https://sample"
+    variables:
+      basePath:
+        default: /api/v1
+paths:
+  /counter:
+    $ref: ./paths/counter/index.yaml
+components:
+  schemas:
+    $ref: ./schemas/index.yaml

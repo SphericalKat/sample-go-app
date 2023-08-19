@@ -1,0 +1,2 @@
+CounterResponse:
+  $ref: ./response/counter.yaml
