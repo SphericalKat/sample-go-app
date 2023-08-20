@@ -12,7 +12,7 @@ type Counter struct {
 
 // Fields of the Counter.
 func (Counter) Fields() []ent.Field {
-	return []ent.Field {
+	return []ent.Field{
 		field.Int("count").Positive(),
 	}
 }

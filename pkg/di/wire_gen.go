@@ -9,12 +9,22 @@ package di
 import (
 	"sample/api"
 	"sample/api/handler"
+	"sample/internal/config"
+	"sample/pkg/domain/repository"
+	"sample/pkg/domain/service"
 )
 
 // Injectors from wire.go:
 
 func InjectServer() (*api.ServerImpl, error) {
-	counterHandler := handler.NewCounterHandlerImpl()
+	configConfig := config.ProvideConfig()
+	client, err := config.ProvideSqliteDB(configConfig)
+	if err != nil {
+		return nil, err
+	}
+	counterRepository := repository.NewSQLCounterRepository(client)
+	counterService := service.NewCounterService(counterRepository)
+	counterHandler := handler.NewCounterHandlerImpl(counterService)
 	serverImpl := api.NewServerImpl(counterHandler)
 	return serverImpl, nil
 }

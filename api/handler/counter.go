@@ -3,16 +3,19 @@ package handler
 import (
 	"context"
 	"sample/api/gen"
+	"sample/pkg/domain/service"
 )
 
 type CounterHandler interface {
 	GetCurrentCount(ctx context.Context, request gen.GetCurrentCountRequestObject) (gen.GetCurrentCountResponseObject, error)
 }
 
-type counterHandlerImpl struct {}
+type counterHandlerImpl struct {
+	counterService service.CounterService
+}
 
-func NewCounterHandlerImpl() CounterHandler {
-	return &counterHandlerImpl{}
+func NewCounterHandlerImpl(counterService service.CounterService) CounterHandler {
+	return &counterHandlerImpl{counterService: counterService}
 }
 
 func (ch *counterHandlerImpl) GetCurrentCount(ctx context.Context, request gen.GetCurrentCountRequestObject) (gen.GetCurrentCountResponseObject, error) {
