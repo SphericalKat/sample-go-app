@@ -13,3 +13,4 @@ oapi-codegen --config types.cfg.yaml ../../spec/build/sample/index.yaml
 
 cd ${script_dir}/..
 go generate --tags wireinject ./...
+go generate ./ent
