@@ -18,6 +18,9 @@ type ServerInterface interface {
 	// Get current counter value
 	// (GET /counter)
 	GetCurrentCount(ctx echo.Context) error
+	// Get current counter value
+	// (POST /increment)
+	IncrementCount(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -31,6 +34,15 @@ func (w *ServerInterfaceWrapper) GetCurrentCount(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.GetCurrentCount(ctx)
+	return err
+}
+
+// IncrementCount converts echo context to params.
+func (w *ServerInterfaceWrapper) IncrementCount(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.IncrementCount(ctx)
 	return err
 }
 
@@ -63,6 +75,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/counter", wrapper.GetCurrentCount)
+	router.POST(baseURL+"/increment", wrapper.IncrementCount)
 
 }
 
@@ -82,11 +95,31 @@ func (response GetCurrentCount200JSONResponse) VisitGetCurrentCountResponse(w ht
 	return json.NewEncoder(w).Encode(response)
 }
 
+type IncrementCountRequestObject struct {
+	Body *IncrementCountJSONRequestBody
+}
+
+type IncrementCountResponseObject interface {
+	VisitIncrementCountResponse(w http.ResponseWriter) error
+}
+
+type IncrementCount200JSONResponse CounterResponse
+
+func (response IncrementCount200JSONResponse) VisitIncrementCountResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Get current counter value
 	// (GET /counter)
 	GetCurrentCount(ctx context.Context, request GetCurrentCountRequestObject) (GetCurrentCountResponseObject, error)
+	// Get current counter value
+	// (POST /increment)
+	IncrementCount(ctx context.Context, request IncrementCountRequestObject) (IncrementCountResponseObject, error)
 }
 
 type StrictHandlerFunc = runtime.StrictEchoHandlerFunc
@@ -118,6 +151,35 @@ func (sh *strictHandler) GetCurrentCount(ctx echo.Context) error {
 		return err
 	} else if validResponse, ok := response.(GetCurrentCountResponseObject); ok {
 		return validResponse.VisitGetCurrentCountResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("Unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// IncrementCount operation middleware
+func (sh *strictHandler) IncrementCount(ctx echo.Context) error {
+	var request IncrementCountRequestObject
+
+	var body IncrementCountJSONRequestBody
+	if err := ctx.Bind(&body); err != nil {
+		return err
+	}
+	request.Body = &body
+
+	handler := func(ctx echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.IncrementCount(ctx.Request().Context(), request.(IncrementCountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "IncrementCount")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(IncrementCountResponseObject); ok {
+		return validResponse.VisitIncrementCountResponse(ctx.Response())
 	} else if response != nil {
 		return fmt.Errorf("Unexpected response type: %T", response)
 	}

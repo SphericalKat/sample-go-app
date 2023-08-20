@@ -8,3 +8,12 @@ type CounterResponse struct {
 	// Count ok
 	Count float32 `json:"count"`
 }
+
+// IncrementRequest defines model for IncrementRequest.
+type IncrementRequest struct {
+	// Amount an optional amount to increment by
+	Amount *int `json:"amount,omitempty"`
+}
+
+// IncrementCountJSONRequestBody defines body for IncrementCount for application/json ContentType.
+type IncrementCountJSONRequestBody = IncrementRequest

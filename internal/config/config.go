@@ -23,7 +23,7 @@ var k = koanf.New(".")
 func ProvideConfig() *Config {
 	if Conf == nil {
 		k.Load(confmap.Provider(map[string]any{
-			"DATABASE_URL":    "file:ent?mode=memory&cache=shared&_fk=1",
+			"DATABASE_URL":    "file:sqlite.db?mode=rwc&cache=shared&_fk=1",
 			"DATABASE_DRIVER": "sqlite3",
 		}, ""), nil)
 
